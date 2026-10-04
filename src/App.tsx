@@ -1,8 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import DataFlowDemo from "./DataFlowDemo";
+import ProjectShowcase from "./components/ProjectShowcase";
+import { etlMonitoringConfig, memberInsightConfig, modelForgeConfig } from "./data/projectShowcaseConfigs";
 
-type Slide = {
-  title: string;
-  subtitle: string;
+type Achievement = {
+  outcome: string;
+  tools: string[];
 };
 
 type Experience = {
@@ -10,31 +13,8 @@ type Experience = {
   role: string;
   timeline: string;
   location: string;
-  points: string[];
+  points: Achievement[];
 };
-
-const slides: Slide[] = [
-  {
-    title: "Ashish Gaurav",
-    subtitle: "Senior Data Engineer building reliable healthcare data platforms at scale.",
-  },
-  {
-    title: "4+ Years in Data Engineering",
-    subtitle: "Designed ETL and ELT systems for enterprise healthcare workloads.",
-  },
-  {
-    title: "~1M Records Processed Daily",
-    subtitle: "Delivered resilient pipelines with 3-hour SLA support for 1000+ tables.",
-  },
-  {
-    title: "Databricks + Snowflake + Airflow",
-    subtitle: "Strong in orchestration, transformation design, and performance optimization.",
-  },
-  {
-    title: "AI-Enabled Data Products",
-    subtitle: "Built internal analytics and data-modeling assistants using Azure OpenAI.",
-  },
-];
 
 const experiences: Experience[] = [
   {
@@ -43,11 +23,11 @@ const experiences: Experience[] = [
     timeline: "Mar 2025 - Present",
     location: "Delhi NCR, India",
     points: [
-      "Contribute to scalable healthcare data integration architecture using Databricks, Snowflake, and Airflow.",
-      "Tune Spark workloads, partition layouts, and Snowflake queries to meet 3-hour SLAs while reducing compute cost.",
-      "Support 200+ Airflow jobs and DAGs with strong dependency, retry, and failure-handling strategies.",
-      "Implement CI/CD with GitHub Actions for Databricks and orchestration validation and deployment across environments.",
-      "Mentor engineers through workflow walkthroughs and debugging support to improve release quality.",
+      { outcome: "Connect healthcare data sources into reliable feeds that support analytics and operations.", tools: ["Databricks", "Snowflake", "Airflow"] },
+      { outcome: "Keep large processing jobs within three-hour delivery targets while reducing compute costs.", tools: ["Spark", "Snowflake"] },
+      { outcome: "Maintain 200+ scheduled workflows with dependable retries and failure recovery.", tools: ["Airflow"] },
+      { outcome: "Make platform releases safer with automated validation across environments.", tools: ["GitHub Actions", "Databricks", "CI/CD"] },
+      { outcome: "Improve team delivery quality through workflow reviews and hands-on troubleshooting support.", tools: ["Airflow", "Databricks"] },
     ],
   },
   {
@@ -56,11 +36,11 @@ const experiences: Experience[] = [
     timeline: "Jan 2023 - Mar 2025",
     location: "Delhi NCR, India",
     points: [
-      "Built ingestion and integration pipelines for TXT, CSV, Excel, and Parquet data from Azure Storage into Bronze and curated layers.",
-      "Delivered batch pipelines handling approximately 1M records/day and supporting 1000+ tables inside strict SLA windows.",
-      "Implemented a data quality framework with 1200+ automated SQL checks for completeness, integrity, and reconciliation.",
-      "Published curated datasets to 6 downstream systems including Curo, CDOS, and Cozeva for operational and analytics usage.",
-      "Enabled secure PHI and PII sharing using compliance-aligned workflows and controls.",
+      { outcome: "Turn files from multiple sources into standardized, analytics-ready healthcare data.", tools: ["Azure", "PySpark", "Parquet"] },
+      { outcome: "Process about 1 million records each day across more than 1,000 tables within delivery windows.", tools: ["PySpark", "Snowflake"] },
+      { outcome: "Catch missing or inconsistent information with more than 1,200 automated quality checks.", tools: ["SQL", "Databricks", "Data Quality"] },
+      { outcome: "Deliver trusted datasets to six healthcare products and partner systems.", tools: ["SQL", "Snowflake", "Azure"] },
+      { outcome: "Protect sensitive patient and personal information through secure handling controls.", tools: ["PHI/PII", "Azure"] },
     ],
   },
   {
@@ -69,9 +49,9 @@ const experiences: Experience[] = [
     timeline: "Aug 2022 - Jan 2023",
     location: "Delhi NCR, India",
     points: [
-      "Profiled source datasets to understand schema relationships and transformation requirements.",
-      "Supported source-to-target mapping and validation for row counts and consistency checks.",
-      "Investigated ETL and release issues using Airflow logs and Databricks execution traces.",
+      { outcome: "Mapped how incoming data relates to business reporting and delivery needs.", tools: ["SQL", "Data Modeling"] },
+      { outcome: "Checked transferred records for count and consistency before downstream use.", tools: ["SQL", "Reconciliation"] },
+      { outcome: "Resolved release issues by tracing workflow logs and processing runs.", tools: ["Airflow", "Databricks"] },
     ],
   },
   {
@@ -80,7 +60,7 @@ const experiences: Experience[] = [
     timeline: "Jun 2022 - Jul 2022",
     location: "Delhi NCR, India",
     points: [
-      "Performed analysis using Databricks and SQL/MySQL and developed reporting dashboards in Power BI and Excel.",
+      { outcome: "Turned business data into clear reports and dashboards for decision-making.", tools: ["SQL", "Databricks", "Power BI", "Excel"] },
     ],
   },
 ];
@@ -88,6 +68,7 @@ const experiences: Experience[] = [
 const projects = [
   {
     title: "Member Insight - AI-Powered Healthcare Data and Patient Analytics Platform",
+    showcase: memberInsightConfig,
     stack: "Python, Flask, Snowflake, Databricks, Azure, Azure OpenAI, SQL",
     timeline: "2024 - 2025",
     points: [
@@ -98,6 +79,7 @@ const projects = [
   },
   {
     title: "ModelForge - AI Data Modeling and Governance Assistant",
+    showcase: modelForgeConfig,
     stack: "Python, FastAPI, Azure OpenAI, RAG, SQLite, Azure AD, JavaScript, HTML/CSS",
     timeline: "2024",
     points: [
@@ -108,6 +90,7 @@ const projects = [
   },
   {
     title: "ETL Pipeline Monitoring and Operational Visibility",
+    showcase: etlMonitoringConfig,
     stack: "Airflow, Databricks, SQL",
     timeline: "2024",
     points: [
@@ -117,222 +100,296 @@ const projects = [
   },
 ];
 
-const skills = [
-  "Python",
-  "PySpark",
-  "SQL",
-  "Spark SQL",
-  "PL/SQL",
-  "Databricks",
-  "Snowflake",
-  "Delta Lake",
-  "Apache Airflow",
-  "Data Modeling",
-  "ETL/ELT",
-  "Data Quality",
-  "Azure",
-  "Azure OpenAI",
-  "GitHub Actions",
-  "CI/CD",
+type IconName = "storage" | "processing" | "reliability" | "ai";
+
+const impactStats = [
+  { value: "1M+", label: "records processed daily" },
+  { value: "1,000+", label: "tables managed" },
+  { value: "200+", label: "data pipelines maintained" },
+  { value: "1,200+", label: "automated quality checks" },
 ];
+
+const skillGroups: { title: string; icon: IconName; skills: string[] }[] = [
+  { title: "Data Collection & Storage", icon: "storage", skills: ["Azure", "Snowflake", "Delta Lake", "CSV / Excel / Parquet"] },
+  { title: "Data Processing & Transformation", icon: "processing", skills: ["Databricks", "PySpark", "Python", "SQL", "Data Modeling"] },
+  { title: "Automation & Reliability", icon: "reliability", skills: ["Airflow", "GitHub Actions", "CI/CD", "Data Quality"] },
+  { title: "AI & Advanced Analytics", icon: "ai", skills: ["Azure OpenAI", "RAG", "Flask", "FastAPI", "Power BI"] },
+];
+
+const skills = skillGroups.flatMap((group) => group.skills);
+
+function ResumeIcon({ name }: { name: IconName }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {name === "storage" && <><ellipse cx="12" cy="5" rx="8" ry="3" /><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5" /><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3" /></>}
+      {name === "processing" && <><path d="M4 6h16" /><path d="M4 12h16" /><path d="M4 18h16" /><circle cx="9" cy="6" r="2" /><circle cx="15" cy="12" r="2" /><circle cx="7" cy="18" r="2" /></>}
+      {name === "reliability" && <><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z" /><path d="m9 12 2 2 4-4" /></>}
+      {name === "ai" && <><path d="m12 3 1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2L12 3Z" /><path d="m19 14 1.1 2.2L22 17l-1.9.8L19 20l-1.1-2.2L16 17l1.9-.8L19 14Z" /></>}
+    </svg>
+  );
+}
+
+function SectionHeading({ eyebrow, title, description }: { eyebrow: string; title: string; description?: string }) {
+  return (
+    <div className="section-heading">
+      <p>{eyebrow}</p>
+      <h2>{title}</h2>
+      {description && <span>{description}</span>}
+    </div>
+  );
+}
+
+function ImpactStatsSection() {
+  return (
+    <section id="impact" className="impact-section" aria-label="Delivery impact">
+      <div className="section-inner impact-grid">
+        {impactStats.map((stat) => (
+          <div className="impact-stat" key={stat.label}>
+            <strong>{stat.value}</strong>
+            <span>{stat.label}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ExperienceSection() {
+  return (
+    <section id="experience" className="recruiter-section experience-section">
+      <div className="section-inner">
+        <SectionHeading eyebrow="EXPERIENCE" title="Making data dependable for the people who use it" description="Clear outcomes first. The tools behind each result are listed separately." />
+        <div className="experience-list">
+          {experiences.map((item) => (
+            <article className="experience-entry" key={`${item.company}-${item.role}`}>
+              <header className="experience-entry-header">
+                <div><h3>{item.role}</h3><p>{item.company} <span>{item.location}</span></p></div>
+                <time>{item.timeline}</time>
+              </header>
+              <div className="achievement-list">
+                {item.points.map((point) => (
+                  <article className="achievement" key={point.outcome}>
+                    <p>{point.outcome}</p>
+                    <div className="tool-tags" aria-label="Tools used">
+                      {point.tools.map((tool) => <span key={tool}>{tool}</span>)}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ProjectsSection() {
+  return (
+    <section id="projects" className="recruiter-section projects-section">
+      <div className="section-inner">
+        <SectionHeading eyebrow="SELECTED PROJECTS" title="Tools that make complex data easier to use" />
+        <div className="project-grid">
+          {projects.map((project) => (
+            <article className="project-item project-showcase-item" key={project.title}>
+              <p className="project-timeline">{project.timeline}</p>
+              <h3>{project.title}</h3>
+              <ul className="project-points">
+                {project.points.map((point) => <li key={point}>{point}</li>)}
+              </ul>
+              <ProjectShowcase config={project.showcase} />
+              <div className="tool-tags">
+                {project.stack.split(", ").map((tool) => <span key={tool}>{tool}</span>)}
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SkillsSection() {
+  return (
+    <section id="skills" className="recruiter-section skills-section">
+      <div className="section-inner">
+        <SectionHeading eyebrow="SKILLS" title="Tools for the full data journey" />
+        <div className="skill-grid">
+          {skillGroups.map((group) => (
+            <article className="skill-card" key={group.title}>
+              <span className="skill-icon"><ResumeIcon name={group.icon} /></span>
+              <h3>{group.title}</h3>
+              <div className="tool-tags">
+                {group.skills.map((skill) => <span key={skill}>{skill}</span>)}
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 function ResumePage() {
   return (
-    <main className="bg-white text-slate-900">
-      <section className="mx-auto w-full max-w-5xl px-6 pb-16 pt-12 md:px-10 md:pt-16">
-        <header className="border-b border-slate-200 pb-8">
-          <p className="text-sm font-medium tracking-[0.18em] text-slate-500">RESUME</p>
-          <h1 className="mt-3 text-4xl font-semibold tracking-tight md:text-5xl">Ashish Gaurav</h1>
-          <p className="mt-3 text-base text-slate-700 md:text-lg">
-            Senior Data Engineer | Data Integration | ETL/ELT | Databricks | Snowflake | Airflow
-          </p>
-          <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-600">
-            <span>+91-708-198-6694</span>
-            <a className="hover:text-slate-900" href="mailto:sumitgaurav86@gmail.com">
-              sumitgaurav86@gmail.com
-            </a>
-            <span>LinkedIn: add-your-link</span>
-            <span>GitHub: add-your-link</span>
+    <main className="resume-page">
+      <div className="resume-page-inner">
+        <header className="resume-page-header">
+          <div>
+            <p>FULL RESUME</p>
+            <h1>Ashish Gaurav</h1>
+            <span>Senior Data Engineer · Healthcare Data Platforms</span>
+            <a href="mailto:sumitgaurav86@gmail.com">sumitgaurav86@gmail.com</a>
           </div>
-          <div className="mt-6 flex gap-3">
-            <button
-              onClick={() => window.print()}
-              className="cursor-pointer border border-slate-300 px-4 py-2 text-sm font-medium text-slate-800 transition hover:border-slate-900 hover:text-slate-900"
-            >
-              Download / Print PDF
-            </button>
-            <a
-              href="#/"
-              className="border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-900"
-            >
-              Back to Intro
-            </a>
+          <div className="resume-page-actions">
+            <a href={`${import.meta.env.BASE_URL}Ashish_New_Resume_Optum.pdf`} download="Ashish_New_Resume_Optum.pdf">Download PDF ↓</a>
+            <a href="#/">Portfolio home ↗</a>
           </div>
         </header>
 
-        <section className="border-b border-slate-200 py-8">
-          <h2 className="text-lg font-semibold">Profile Summary</h2>
-          <p className="mt-3 max-w-4xl text-slate-700">
-            Senior Data Engineer with 4+ years of experience building healthcare ETL/ELT and enterprise
-            data integration solutions using Databricks, PySpark, SQL, Snowflake, and Apache Airflow on
-            Azure. Delivered batch pipelines processing around 1M records per day, supporting 1000+ tables
-            and 200+ jobs and DAGs inside 3-hour SLAs. Experienced in data modeling, source-to-target
-            mapping, data quality automation, reconciliation, and secure PHI and PII data handling.
-          </p>
+        <section className="resume-summary">
+          <h2>What I do</h2>
+          <p>I help organizations turn scattered healthcare data into reliable information for teams, products, and decisions.</p>
         </section>
 
-        <section className="border-b border-slate-200 py-8">
-          <h2 className="text-lg font-semibold">Experience</h2>
-          <div className="mt-5 space-y-8">
-            {experiences.map((item) => (
-              <article key={`${item.company}-${item.role}`}>
-                <div className="flex flex-col gap-1 md:flex-row md:items-baseline md:justify-between">
-                  <h3 className="text-base font-semibold text-slate-900">
-                    {item.role} - {item.company}
-                  </h3>
-                  <p className="text-sm text-slate-500">{item.timeline}</p>
-                </div>
-                <p className="mt-1 text-sm text-slate-600">{item.location}</p>
-                <ul className="mt-3 list-disc space-y-2 pl-5 text-slate-700">
-                  {item.points.map((point) => (
-                    <li key={point}>{point}</li>
-                  ))}
-                </ul>
-              </article>
-            ))}
+        <DataFlowDemo />
+        <ImpactStatsSection />
+        <ExperienceSection />
+        <ProjectsSection />
+        <SkillsSection />
+
+        <section className="resume-details">
+          <div>
+            <h2>Education</h2>
+            <p>National Institute of Technology Jamshedpur · 2018 - 2022</p>
+            <p>B.Tech Hons., Electrical and Electronics Engineering · CGPA 8.3/10</p>
+          </div>
+          <div>
+            <h2>Certifications</h2>
+            <ul>
+              <li>Databricks Certified Data Engineer Associate (2023)</li>
+              <li>Optum Specialized AI Dojo Certification</li>
+              <li>Data Science and Data Analysis with Python - IBM</li>
+            </ul>
           </div>
         </section>
-
-        <section className="border-b border-slate-200 py-8">
-          <h2 className="text-lg font-semibold">Projects</h2>
-          <div className="mt-5 space-y-8">
-            {projects.map((project) => (
-              <article key={project.title}>
-                <div className="flex flex-col gap-1 md:flex-row md:items-baseline md:justify-between">
-                  <h3 className="text-base font-semibold">{project.title}</h3>
-                  <p className="text-sm text-slate-500">{project.timeline}</p>
-                </div>
-                <p className="mt-1 text-sm text-slate-600">{project.stack}</p>
-                <ul className="mt-3 list-disc space-y-2 pl-5 text-slate-700">
-                  {project.points.map((point) => (
-                    <li key={point}>{point}</li>
-                  ))}
-                </ul>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="border-b border-slate-200 py-8">
-          <h2 className="text-lg font-semibold">Technical Skills</h2>
-          <p className="mt-3 text-slate-700">{skills.join(" | ")}</p>
-        </section>
-
-        <section className="border-b border-slate-200 py-8">
-          <h2 className="text-lg font-semibold">Education</h2>
-          <p className="mt-3 text-slate-700">National Institute of Technology Jamshedpur (2018 - 2022)</p>
-          <p className="text-slate-700">B.Tech Hons. - Electrical and Electronics Engineering | CGPA: 8.3/10</p>
-        </section>
-
-        <section className="py-8">
-          <h2 className="text-lg font-semibold">Certifications</h2>
-          <ul className="mt-3 list-disc space-y-2 pl-5 text-slate-700">
-            <li>Databricks Certified Data Engineer Associate (2023)</li>
-            <li>Optum Specialized AI Dojo Certification</li>
-            <li>Data Science and Data Analysis with Python - IBM</li>
-          </ul>
-        </section>
-      </section>
+      </div>
     </main>
   );
 }
 
 function IntroPage() {
-  const [activeSlide, setActiveSlide] = useState(0);
+  const [activeSection, setActiveSection] = useState("");
 
   useEffect(() => {
-    const interval = window.setInterval(() => {
-      setActiveSlide((current) => (current + 1) % slides.length);
-    }, 2800);
+    const sectionIds = ["how", "impact", "experience", "projects", "skills"];
+    const sections = sectionIds.map((id) => document.getElementById(id)).filter((section): section is HTMLElement => section !== null);
+    const observer = new IntersectionObserver((entries) => {
+      const current = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((first, second) => first.boundingClientRect.top - second.boundingClientRect.top)[0];
+      if (current) setActiveSection(current.target.id);
+    }, { rootMargin: "-24% 0px -64% 0px", threshold: 0 });
 
-    return () => window.clearInterval(interval);
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
   }, []);
 
-  const currentSlide = useMemo(() => slides[activeSlide], [activeSlide]);
+  useEffect(() => {
+    if (window.location.hash !== "#projects") return;
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById("projects")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-slate-950 text-white">
-      <img
-        src="/images/ashish-resume-preview.png"
-        alt="Ashish Gaurav resume preview"
-        className="absolute inset-0 h-full w-full object-cover opacity-35 motion-safe:animate-[slowZoom_18s_ease-in-out_infinite_alternate]"
-      />
-      <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-900/80 to-slate-950/75" />
+    <main className="portfolio-home">
+      <div className="portfolio-wrap">
+        <header className="portfolio-header">
+          <a className="portfolio-brand" href="#/" aria-label="Ashish Gaurav home">
+            <span>AG</span>
+            <strong>Ashish Gaurav</strong>
+          </a>
+          <nav className="portfolio-nav" aria-label="Main navigation">
+            <a className={activeSection === "how" ? "is-active" : ""} aria-current={activeSection === "how" ? "location" : undefined} href="#how">How I work</a>
+            <a className={activeSection === "experience" ? "is-active" : ""} aria-current={activeSection === "experience" ? "location" : undefined} href="#experience">Experience</a>
+            <a className={activeSection === "projects" ? "is-active" : ""} aria-current={activeSection === "projects" ? "location" : undefined} href="#projects">Projects</a>
+            <a className={activeSection === "skills" ? "is-active" : ""} aria-current={activeSection === "skills" ? "location" : undefined} href="#skills">Skills</a>
+            <a className="nav-download" href={`${import.meta.env.BASE_URL}Ashish_New_Resume_Optum.pdf`} download="Ashish_New_Resume_Optum.pdf">
+              Download resume <span aria-hidden="true">↓</span>
+            </a>
+          </nav>
+        </header>
 
-      <section
-        className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center px-6 py-16 md:px-10"
-        aria-label="Resume slideshow preview"
-      >
-        <p className="text-sm font-medium tracking-[0.2em] text-sky-200">ASHISH GAURAV</p>
-        <h1 className="mt-4 max-w-3xl text-4xl font-semibold leading-tight tracking-tight md:text-6xl">
-          Senior Data Engineer
-        </h1>
-        <p className="mt-4 max-w-2xl text-base text-slate-200 md:text-lg">
-          Data Integration, ETL/ELT, Databricks, Snowflake, and Airflow for enterprise healthcare
-          platforms.
-        </p>
+        <section className="portfolio-hero" aria-label="Senior data engineer profile">
+          <div className="hero-copy">
+            <p className="hero-eyebrow"><span /> DATA ENGINEERING <i /> HEALTHCARE <i /> CLOUD
+            </p>
+            <h1>Ashish<br /><span>Gaurav</span></h1>
+            <p className="hero-role">Senior Data Engineer</p>
+            <p className="hero-summary">
+              I help organizations turn messy, scattered data into reliable, ready-to-use information.
+            </p>
+            <div className="hero-actions">
+              <a className="button-download" href={`${import.meta.env.BASE_URL}Ashish_New_Resume_Optum.pdf`} download="Ashish_New_Resume_Optum.pdf">
+                Download resume <span aria-hidden="true">↓</span>
+              </a>
+              <a
+                className="button-text see-how-link"
+                href="#how"
+                onClick={() => window.dispatchEvent(new Event("dataflow:replay-on-arrival"))}
+              >
+                See how I work <span aria-hidden="true">↓</span>
+              </a>
+              <a className="button-text" href="#experience">Explore experience <span aria-hidden="true">↗</span></a>
+            </div>
+          </div>
 
-        <a
-          href="#/resume"
-          className="group mt-10 block w-full max-w-3xl border border-white/35 bg-black/25 p-7 backdrop-blur-sm transition hover:border-white/70 hover:bg-black/35"
-          aria-label="Open full resume"
-        >
-          <p className="text-xs tracking-[0.16em] text-sky-200">SLIDESHOW PREVIEW</p>
-          <h2
-            key={currentSlide.title}
-            className="mt-3 text-2xl font-semibold leading-tight motion-safe:animate-[fadeUp_420ms_ease-out]"
-          >
-            {currentSlide.title}
-          </h2>
-          <p
-            key={currentSlide.subtitle}
-            className="mt-2 max-w-2xl text-slate-100 motion-safe:animate-[fadeUp_540ms_ease-out]"
-          >
-            {currentSlide.subtitle}
-          </p>
-          <p className="mt-5 text-sm text-sky-100/90 transition group-hover:text-white">
-            Click this slideshow to open full resume
-          </p>
-        </a>
-
-        <div className="mt-6 flex gap-2">
-          {slides.map((slide, index) => (
-            <button
-              key={slide.title}
-              onClick={() => setActiveSlide(index)}
-              className={`h-1.5 w-10 cursor-pointer transition ${
-                index === activeSlide ? "bg-white" : "bg-white/35 hover:bg-white/60"
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
+          <section className="career-snapshot" aria-label="Career snapshot and delivery impact">
+            <img
+              src={`${import.meta.env.BASE_URL}images/ashish-resume-preview.png`}
+              alt=""
+              aria-hidden="true"
             />
-          ))}
-        </div>
+            <div className="snapshot-content">
+              <p className="snapshot-label">CAREER PROGRESSION</p>
+              <h2>Growing responsibility.<br />Trusted delivery.</h2>
 
-        <div className="mt-10 flex flex-wrap gap-3">
-          <a
-            href="#/resume"
-            className="bg-sky-300 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-sky-200"
-          >
-            View Full Resume
-          </a>
-          <a
-            href="mailto:sumitgaurav86@gmail.com"
-            className="border border-white/45 px-5 py-3 text-sm font-semibold text-white transition hover:border-white"
-          >
-            Contact Ashish
-          </a>
-        </div>
-      </section>
+              <div className="career-list" aria-label="Recent experience">
+                <article>
+                  <time>2025 - NOW</time>
+                  <div><h3>Optum</h3><p>Senior Data Engineer</p></div>
+                </article>
+                <article>
+                  <time>2023 - 2025</time>
+                  <div><h3>Optum</h3><p>Data Engineering Analyst</p></div>
+                </article>
+                <article>
+                  <time>2022</time>
+                  <div><h3>Tredence</h3><p>Analyst</p></div>
+                </article>
+              </div>
+
+              <a className="snapshot-link" href="#experience">View career impact <span aria-hidden="true">↗</span></a>
+            </div>
+          </section>
+        </section>
+
+        <DataFlowDemo />
+        <ImpactStatsSection />
+        <ExperienceSection />
+        <ProjectsSection />
+        <SkillsSection />
+
+        <footer className="portfolio-footer">
+          <span>DELHI NCR, INDIA</span>
+          <a href="mailto:sumitgaurav86@gmail.com">sumitgaurav86@gmail.com <span aria-hidden="true">↗</span></a>
+          <span className="portfolio-social-pending">LinkedIn · profile URL needed</span>
+          <span className="portfolio-social-pending">GitHub · profile URL needed</span>
+          <a href="#/resume">Education &amp; certifications <span aria-hidden="true">↗</span></a>
+        </footer>
+      </div>
     </main>
   );
 }
